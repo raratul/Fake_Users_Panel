@@ -2,9 +2,10 @@
 # exit on error
 set -o errexit
 
-chmod a+x bin/render-build.sh
+chmod +x bin/rails
 
 bundle install
 bundle exec rails assets:precompile
 bundle exec rails assets:clean
 bundle exec rails
+
