@@ -11,8 +11,12 @@ gem "sprockets-rails"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
 
+gem 'faker'
+
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
+
+gem "importmap-rails"
 
 # Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]
 gem "jsbundling-rails"
