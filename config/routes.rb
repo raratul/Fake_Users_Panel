@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  get 'fakeusers/index'
+  root to:"fakeusers#index"
+  get '/fake_users_generator', to: 'fakeusers#fake_users_generator'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

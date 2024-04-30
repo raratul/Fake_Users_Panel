@@ -1,2 +1,209 @@
-<h1>Fakeusers#index</h1>
-<p>Find me in app/views/fakeusers/index.html.erb</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fake Users Panel</title>
+</head>
+<body>
+
+<h1 class="container">Fake Users Panel</h1>
+
+<div class="container mt-3">
+  <div class="row">
+    <div class="col">
+       <div class="form-group">
+          <label for="region">Region</label>
+          <select class="form-control" id="region">
+            <option value="Poland">Poland</option>
+            <option value="USA">USA</option>
+            <option value="UK">UK</option>
+          </select>
+       </div>
+    </div>
+
+    <div class="col">
+      <div class="form-group">
+        <label for="error">Errors</label>
+        <input type="range" class="form-control-range" id="error" min="0" max="10" step="0.1">
+        <input type="number" class="form-control" id="errorValue">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mt-3 mb-3">
+    <div class="row">
+        <div class="col">
+            <div class="form-group">
+                <label for="seed">Seed</label>
+                <input type="number" class="form-control" id="seed" placeholder="Enter seed value">
+                <button type="button" class="btn btn-dark mt-3" id="randomseed">Random Seed</button>
+            </div>
+        </div>
+
+        <div class="col">
+            <button type="button" class="btn btn-success btn-lg container mt-3" id="exportCSV">Export</button>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-3">
+    <div class="table-responsive">
+        <table class="table table-striped" id="userTable">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Identifier</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Address</th>
+                    <th scope="col">Phone</th>
+                </tr>
+            </thead>
+            <tbody class="table-body">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+$(document).ready(function() { 
+$('#error').on('input', function() {
+if (!$('#errorValue').is(':focus')) {
+$('#errorValue').val($(this).val());
+generateFakeUsers({ scroll: false });
+}
+});
+
+$('#errorValue').on('input', function() {
+$('#error').val($(this).val());
+generateFakeUsers({ scroll: false });
+});
+
+$('#randomseed').click(function() {
+var seed = Math.floor(Math.random() * 10000000); 
+$('#seed').val(seed);
+generateFakeUsers({ scroll: false });
+});
+
+$('#seed').on('input', function() {
+generateFakeUsers({ scroll: false });
+});
+
+$('#region').change(function() {
+generateFakeUsers({ scroll: false });
+});
+
+
+function exportCSV(data) {
+const headers = Object.keys(data[0]);
+let csvContent = headers.join(",") + "\n";
+data.forEach(row => {
+const values = headers.map(header => {
+const value = row[header].includes(",") ? `"${row[header]}"` : row[header];
+return value;
+});
+csvContent += values.join(",") + "\n";
+});
+const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+const link = document.createElement("a");
+link.setAttribute("href", encodedUri);
+link.setAttribute("download", "generated_data.csv");
+document.body.appendChild(link);
+link.click();
+}
+
+$('#exportCSV').click(function() {
+const tableData = $('#userTable tbody tr').map(function() {
+return {
+ID: $(this).find('td:eq(0)').text(),
+Identifier: $(this).find('td:eq(1)').text(),
+Name: $(this).find('td:eq(2)').text(),
+Address: $(this).find('td:eq(3)').text(),
+Phone: $(this).find('td:eq(4)').text()
+};
+}).get();
+exportCSV(tableData);
+});
+
+function debounce(func, delay) {
+let timeout;
+return function() {
+const context = this;
+const args = arguments;
+clearTimeout(timeout);
+timeout = setTimeout(function() {
+func.apply(context, args);
+}, delay);
+};
+}
+
+const delayedgenerateFakeUsers = debounce(generateFakeUsers, 200);
+
+function generateFakeUsers(params) {
+var seed = $('#seed').val();
+var region = $('#region').val();
+var errorValue_1 = parseFloat($('#error').val()); 
+var errorValue_2 = parseFloat($('#errorValue').val());
+
+var errorValue;
+if (errorValue_1 > errorValue_2) {
+errorValue = errorValue_1;
+} else {
+errorValue = errorValue_2;
+}
+
+console.log(errorValue);
+
+$.ajax({
+url: '/fake_users_generator',
+method: 'GET',
+data: {
+seed: seed,
+region: region,
+error_value: errorValue,
+scroll: params.scroll
+},
+success: function(data) {
+$('#userTable tbody').empty();
+data.forEach(function(user) {
+$('#userTable tbody').append(`
+<tr>
+<td>${user.id}</td>
+<td>${user.identifier}</td>
+<td>${user.name}</td>
+<td>${user.address}</td>
+<td>${user.phone}</td>
+</tr>
+`);
+});
+
+$('#userTable').scrollTop($('#userTable')[0].scrollHeight);
+},
+error: function(xhr, status, error) {
+console.error(error);
+}
+});
+}
+
+function isAtBottom() {
+return window.innerHeight + window.scrollY >= document.body.offsetHeight;
+}
+
+window.addEventListener('scroll', function() {
+if (isAtBottom()) {
+delayedgenerateFakeUsers({ scroll: true });
+}
+});
+
+  generateFakeUsers({ scroll: false });
+});
+
+</script>
+</body>
+</html>
+
